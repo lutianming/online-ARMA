@@ -7,10 +7,41 @@ import matplotlib.pyplot as plt
 def gen_dataset1(n_samples=10000):
     alpha = np.array([0.6, -0.5, 0.4, -0.4, 0.3])
     beta = np.array([0.3, -0.2])
+    a = 5
+    b = 2
     sigma = 0.3
 
-    return arma_generate_sample(np.r_[1, -alpha], np.r_[1, beta],
-                                n_samples, sigma=sigma)
+    noises = [0]*b
+    arma = [0]*a
+    for i in range(n_samples):
+        noise = np.random.normal(0, sigma)
+        x = np.sum(arma[:-a-1:-1] * alpha)
+        x += np.sum(noises[:-b-1:-1] * beta)
+        x += noise
+        arma.append(x)
+        noises.append(noise)
+    arma = np.array(arma[a:])
+    return arma
+
+
+def gen_dataset2(n_samples):
+    alpha1 = np.array([-0.4, -0.5, 0.4, 0.4, 0.1])
+    alpha2 = np.array([0.6, -0.4, 0.4, -0.5, 0.4])
+    beta = np.array([0.32, -0.2])
+    a = 5
+    b = 2
+
+    noises = [0]*b
+    arma = [0]*a
+    for i in range(n_samples):
+        noise = np.random.uniform(-0.5, 0.5)
+        alpha = alpha1*(i/float(n_samples)) + alpha2*(1 - i/float(n_samples))
+        x = np.sum(arma[:-a-1:-1] * alpha)
+        x += np.sum(noises[:-b-1:-1] * beta)
+        x += noise
+        arma.append(x)
+        noises.append(noise)
+    return np.array(arma[a:])
 
 
 def gen_dataset3(n_samples=10000):
@@ -20,35 +51,53 @@ def gen_dataset3(n_samples=10000):
     alpha2 = np.array([-0.4, -0.5, 0.4, 0.4, 0.1])
     beta2 = np.array([-0.3, 0.2])
 
-    p1 = ArmaProcess.from_coeffs(alpha1, beta1)
-    arma1 = p1.generate_sample(n)
-    p2 = ArmaProcess.from_coeffs(alpha2, beta2)
-    arma2 = p2.generate_sample(n)
+    a = 5
+    b = 2
+    noises1 = [0]*b
+    arma1 = [0]*a
+    for i in range(n):
+        noise = np.random.uniform(-0.5, 0.5)
+        x = np.sum(arma1[:-a-1:-1] * alpha1)
+        x += np.sum(noises1[:-b-1:-1] * beta1)
+        x += noise
+        arma1.append(x)
+        noises1.append(noise)
 
-    arma = np.r_[arma1, arma2]
-    arma += np.random.uniform(-0.5, 0.5, n_samples)
-    return arma
+    noises2 = [0]*b
+    arma2 = [0]*a
+    for i in range(n):
+        noise = np.random.uniform(-0.5, 0.5)
+        x = np.sum(arma2[:-a-1:-1] * alpha2)
+        x += np.sum(noises2[:-b-1:-1] * beta2)
+        x += noise
+        arma2.append(x)
+        noises2.append(noise)
+
+    arma = arma1[a:] + arma2[a:]
+    return np.array(arma)
 
 
 def gen_dataset4(n_samples=10000):
     alpha = np.array([0.11, -0.5])
     beta = np.array([0.41, -0.39, -0.685, 0.1])
-    p = ArmaProcess.from_coeffs(alpha, beta)
-    arma = p.generate_sample(n_samples)
+    a = 2
+    b = 4
 
-    expectation = 0
-    noises = []
+    noise = 0
+    noises = [0]*b
+    arma = [0]*a
     for i in range(n_samples):
-        noise = np.random.normal(expectation, 0.3)
+        noise = np.random.normal(noise, 0.3)
+        x = np.sum(arma[:-a-1:-1] * alpha)
+        x += np.sum(noises[:-b-1:-1] * beta)
+        x += noise
+        arma.append(x)
         noises.append(noise)
-        expectation = noise
-
-    arma += noises
+    arma = np.array(arma[a:])
     return arma
 
-
 if __name__ == '__main__':
-    dataset = gen_dataset3()
-    n = dataset.shape[0]
+    n = 10000
+    dataset = gen_dataset4(n_samples=n)
     plt.plot(range(n), dataset)
     plt.show()
