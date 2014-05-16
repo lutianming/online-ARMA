@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
-from scipy.optimize import fmin_cg
+from scipy.optimize import fmin_bfgs
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import pandas as pd
@@ -27,7 +27,7 @@ def arma_ons(X, m, k, q):
     A = np.matrix(A)
     T = X.shape[0]
 
-    L = np.random.uniform(-1, 1, (m+k, 1))
+    L = np.random.uniform(-0.5, 0.5, (m+k, 1))
     L = np.matrix(L)
 
     X_p = np.zeros(T)
@@ -50,9 +50,10 @@ def arma_ons(X, m, k, q):
             x = X[t-i-1] if t-i-1 >= 0 else 0
             nabla[i, 0] = -2*(X[t]-X_t)*x
         A = A + np.dot(nabla, nabla.T)
-        y = L - 1/rate*np.dot(inv(A), nabla)
-        L = fmin_cg(K_min(y, A), L)
-        L = np.matrix(L).reshape(-1, 1)
+        # y = L - 1/rate*np.dot(inv(A), nabla)
+        # L = fmin_bfgs(K_min(y, A), L)
+        # L = np.matrix(L).reshape(-1, 1)
+        L = L - 1/rate*np.dot(inv(A), nabla)
     return X_p, loss
 
 
@@ -65,7 +66,7 @@ def arma_ogd(X, m, k, q):
     T = X.shape[0]
     rate = D/(G*np.sqrt(T))
 
-    L = np.random.uniform(-1, 1, (m+k, 1))
+    L = np.random.uniform(-0.5, 0.5, (m+k, 1))
     L = np.matrix(L)
 
     X_p = np.zeros(T)
@@ -98,17 +99,64 @@ def gen_errors(loss):
         errors[i] = np.sum(loss[0:i+1])/(i+1)
     return errors
 
+
+def average(datagen, N, arma, n):
+    avg = np.zeros(N)
+    for i in range(n):
+        X = datagen(N)
+        X_p, loss = arma(X, 5, 5, 0)
+        avg += loss
+    avg = avg / n
+    return avg
+
 if __name__ == '__main__':
-    n = 1000
+    n = 10000
+    iters = 2
     t = range(n)
     X = data.gen_dataset1(n)
 
-    X_p, loss = arma_ons(X, 5, 5, 0)
+    plt.subplot(221)
+    loss = average(data.gen_dataset1, n, arma_ons, iters)
     e = gen_errors(loss)
     plt.plot(t, e, label="arma-ons")
 
-    X_p, loss = arma_ogd(X, 5, 5, 0)
+    loss = average(data.gen_dataset1, n, arma_ogd, iters)
     e = gen_errors(loss)
     plt.plot(t, e, label="arma-ogd")
     plt.legend()
+    plt.title("Sanity check")
+
+    plt.subplot(222)
+    loss = average(data.gen_dataset2, n, arma_ons, iters)
+    e = gen_errors(loss)
+    plt.plot(t, e, label="arma-ons")
+
+    loss = average(data.gen_dataset2, n, arma_ogd, iters)
+    e = gen_errors(loss)
+    plt.plot(t, e, label="arma-ogd")
+    plt.legend()
+    plt.title("Slowly changing coefficients")
+
+    plt.subplot(223)
+    loss = average(data.gen_dataset3, n, arma_ons, iters)
+    e = gen_errors(loss)
+    plt.plot(t, e, label="arma-ons")
+
+    loss = average(data.gen_dataset3, n, arma_ogd, iters)
+    e = gen_errors(loss)
+    plt.plot(t, e, label="arma-ogd")
+    plt.legend()
+    plt.title("Abrupt change")
+
+    plt.subplot(224)
+    loss = average(data.gen_dataset4, n, arma_ons, iters)
+    e = gen_errors(loss)
+    plt.plot(t, e, label="arma-ons")
+
+    # loss = average(data.gen_dataset4, n, arma_ogd, iters)
+    # e = gen_errors(loss)
+    # plt.plot(t, e, label="arma-ogd")
+    plt.legend()
+    plt.title("Correlated noise")
+
     plt.show()
