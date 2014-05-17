@@ -2,6 +2,8 @@ import numpy as np
 import statsmodels.api as sm
 from statsmodels.tsa.arima_process import ArmaProcess, arma_generate_sample
 import matplotlib.pyplot as plt
+import datetime
+import pandas.io.data as web
 
 
 def gen_dataset1(n_samples=10000):
@@ -96,8 +98,31 @@ def gen_dataset4(n_samples=10000):
     arma = np.array(arma[a:])
     return arma
 
+
+def gen_temperature(n_samples=10000):
+    t = sm.datasets.elnino.load()
+    temps = []
+    for year in t.data.tolist():
+        temps.extend(year[1:])
+    data = np.array(temps[0:n_samples])
+    data = (data-np.mean(data))/(np.max(data)-np.min(data))
+    return data
+
+
+def gen_stock(n_samples=10000):
+    start = datetime.datetime(2000, 1, 1)
+    end = datetime.datetime(2014, 1, 1)
+    f = web.DataReader('^GSPC', 'yahoo', start, end)
+    data = f['Close'].tolist()
+    data = np.array(data)
+    data = (data-np.mean(data))/(np.max(data)-np.min(data))
+    return data
+
 if __name__ == '__main__':
     n = 10000
-    dataset = gen_dataset4(n_samples=n)
+    # dataset = gen_dataset4(n_samples=n)
+    # dataset = gen_temperature()
+    dataset = gen_stock()
+    n = dataset.shape[0]
     plt.plot(range(n), dataset)
     plt.show()
