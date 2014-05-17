@@ -118,45 +118,75 @@ if __name__ == '__main__':
     plt.subplot(221)
     loss = average(data.gen_dataset1, n, arma_ons, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ons")
+    plt.plot(t, e, label="ARMA-ONS")
 
     loss = average(data.gen_dataset1, n, arma_ogd, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ogd")
+    plt.plot(t, e, label="ARMA-OGD")
     plt.legend()
     plt.title("Sanity check")
 
     plt.subplot(222)
     loss = average(data.gen_dataset2, n, arma_ons, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ons")
+    plt.plot(t, e, label="ARMA-ONS")
 
     loss = average(data.gen_dataset2, n, arma_ogd, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ogd")
+    plt.plot(t, e, label="ARMA-OGD")
     plt.legend()
     plt.title("Slowly changing coefficients")
 
     plt.subplot(223)
     loss = average(data.gen_dataset3, n, arma_ons, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ons")
+    plt.plot(t, e, label="ARMA-ONS")
 
     loss = average(data.gen_dataset3, n, arma_ogd, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ogd")
+    plt.plot(t, e, label="ARMA-OGD")
     plt.legend()
     plt.title("Abrupt change")
 
     plt.subplot(224)
     loss = average(data.gen_dataset4, n, arma_ons, iters)
     e = gen_errors(loss)
-    plt.plot(t, e, label="arma-ons")
+    plt.plot(t, e, label="ARMA-ONS")
 
     # loss = average(data.gen_dataset4, n, arma_ogd, iters)
     # e = gen_errors(loss)
-    # plt.plot(t, e, label="arma-ogd")
+    # plt.plot(t, e, label="ARMA-OGD")
     plt.legend()
     plt.title("Correlated noise")
 
+    plt.show()
+
+    #for real data
+    plt.subplot(121)
+    X = data.gen_temperature()
+    n = X.shape[0]
+    t = range(n)
+
+    X_p, loss = arma_ons(X, 5, 5, 0)
+    e = gen_errors(loss)
+    plt.plot(t, e, label="ARMA-ONS")
+
+    X_p, loss = arma_ogd(X, 5, 5, 0)
+    e = gen_errors(loss)
+    plt.plot(t, e, label='AMRA-OGD')
+    plt.legend()
+
+    plt.subplot(122)
+    X = data.gen_stock()
+    n = X.shape[0]
+    t = range(n)
+
+    X_p, loss = arma_ons(X, 5, 5, 0)
+    e = gen_errors(loss)
+    plt.plot(t, e, label='ARMA-ONS')
+
+    X_p, loss = arma_ogd(X, 5, 5, 0)
+    e = gen_errors(loss)
+    plt.plot(t, e, label='ARMA-OGD')
+    plt.legend()
     plt.show()
